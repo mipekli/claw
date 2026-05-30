@@ -7,7 +7,7 @@ import { startTelegramBot } from "./telegram.js";
 import { loadAskInput, parseAskArgs, startCLIChat } from "./cli.js";
 import { AppError } from "./errors.js";
 import { EXIT_CODES, KNOWN_MODELS, SUPPORTED_PROVIDERS } from "./constants.js";
-import { validateConfig } from "./validation.js";
+import { isSupportedProvider, validateConfig } from "./validation.js";
 
 const command = process.argv[2];
 
@@ -50,9 +50,12 @@ async function handleProviderCommand(): Promise<void> {
     return;
   }
   if (action === "set") {
-    const provider = process.argv[4] as any;
+    const provider = process.argv[4];
     if (!provider) {
       throw new AppError("Usage: ewpo provider set <provider>", EXIT_CODES.INVALID_INPUT);
+    }
+    if (!isSupportedProvider(provider)) {
+      throw new AppError(`Unsupported provider: ${provider}`, EXIT_CODES.INVALID_INPUT);
     }
     setProvider(provider);
     console.log(`Provider set to: ${provider}`);

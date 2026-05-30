@@ -30,7 +30,7 @@ export async function setupInteractive(): Promise<void> {
 
   console.log("\n🔧 ewpo setup\n");
 
-  const providerInput = ((await ask("AI provider (anthropic/openai/openrouter): ")) || "anthropic").trim();
+  const providerInput = ((await ask(`AI provider (${SUPPORTED_PROVIDERS.join("/")}): `)) || "anthropic").trim();
   if (!isSupportedProvider(providerInput)) {
     throw new AppError(`Unsupported provider: ${providerInput}`);
   }

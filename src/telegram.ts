@@ -5,6 +5,7 @@ import { loadTelegramHistory, saveTelegramHistory } from "./history.js";
 import { updateConfig } from "./config.js";
 import { trackUsage } from "./metrics.js";
 
+// Telegram hard limit is 4096, keep small buffer for safety around formatting/encoding.
 const TELEGRAM_MAX_MESSAGE_LENGTH = 3900;
 
 function parseUserIds(raw: string): number[] {

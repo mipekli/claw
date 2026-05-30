@@ -114,8 +114,9 @@ export async function startCLIChat(provider: Provider, systemPrompt?: string): P
       input = lines.join("\n");
     }
 
-    if (input.trim().startsWith("@")) {
-      const filePath = input.trim().slice(1).trim();
+    const normalizedInput = input.trim();
+    if (normalizedInput.startsWith("@")) {
+      const filePath = normalizedInput.slice(1).trim();
       try {
         input = await fs.readFile(filePath, "utf8");
       } catch {
