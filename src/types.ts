@@ -8,6 +8,8 @@ export interface ProviderConfig {
   model: string;
   maxTokens?: number;
   baseUrl?: string;
+  timeoutMs?: number;
+  retryCount?: number;
 }
 
 export interface Config {
@@ -16,9 +18,12 @@ export interface Config {
   openai?: ProviderConfig;
   openrouter?: ProviderConfig;
   systemPrompt?: string;
+  debug?: boolean;
   telegram?: {
     token: string;
     allowedUserIds?: number[];
+    adminUserIds?: number[];
+    historyEnabled?: boolean;
   };
 }
 
