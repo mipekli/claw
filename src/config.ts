@@ -44,6 +44,18 @@ export async function setupInteractive(): Promise<void> {
   const maxTokensInput = await ask("Max tokens (default: 4096): ");
   const timeoutInput = await ask("Timeout ms (default: 120000): ");
   const retryInput = await ask("Retry count (default: 1): ");
+  const maxTokens = maxTokensInput ? Number(maxTokensInput) : 4096;
+  const timeoutMs = timeoutInput ? Number(timeoutInput) : 120000;
+  const retryCount = retryInput ? Number(retryInput) : 1;
+  if (!Number.isFinite(maxTokens) || maxTokens <= 0) {
+    throw new AppError("Max tokens must be a positive number.");
+  }
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new AppError("Timeout must be a positive number.");
+  }
+  if (!Number.isFinite(retryCount) || retryCount < 0) {
+    throw new AppError("Retry count must be zero or a positive number.");
+  }
 
   let baseUrl: string | undefined;
   if (provider === "openrouter") {
@@ -61,9 +73,9 @@ export async function setupInteractive(): Promise<void> {
   const providerCfg: ProviderConfig = {
     apiKey,
     model,
-    maxTokens: maxTokensInput ? Number(maxTokensInput) : 4096,
-    timeoutMs: timeoutInput ? Number(timeoutInput) : 120000,
-    retryCount: retryInput ? Number(retryInput) : 1,
+    maxTokens,
+    timeoutMs,
+    retryCount,
     ...(baseUrl ? { baseUrl } : {}),
   };
   const update: Partial<Config> = {

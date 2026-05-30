@@ -13,7 +13,7 @@ export class AnthropicProvider implements Provider {
   }
 
   async *sendMessage(messages: Message[], systemPrompt?: string): AsyncIterable<string> {
-    const attempts = (this.config.retryCount ?? 1) + 1;
+    const attempts = (this.config.retryCount ?? 0) + 1;
     let lastError: unknown;
     for (let attempt = 0; attempt < attempts; attempt++) {
       try {

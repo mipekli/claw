@@ -7,6 +7,7 @@ import { EXIT_CODES, SUPPORTED_PROVIDERS } from "./constants.js";
 import { loadCliHistory, saveCliHistory, listCliHistories } from "./history.js";
 import { trackUsage } from "./metrics.js";
 import { debugLog } from "./logger.js";
+import { isSupportedProvider } from "./validation.js";
 
 export async function startCLIChat(provider: Provider, systemPrompt?: string): Promise<void> {
   const readline = await import("readline");
@@ -88,12 +89,12 @@ export async function startCLIChat(provider: Provider, systemPrompt?: string): P
     }
     if (trimmed.startsWith("/provider ")) {
       const next = trimmed.slice(10).trim();
-      if (!SUPPORTED_PROVIDERS.includes(next as any)) {
+      if (!isSupportedProvider(next)) {
         console.log(`┃ ❌ Unsupported provider. Use: ${SUPPORTED_PROVIDERS.join(", ")}`);
         continue;
       }
       try {
-        setProvider(next as any);
+        setProvider(next);
         const cfg = getConfig();
         activeProvider = createProvider(cfg);
         console.log(`┃ ✅ Provider set to '${next}'.`);

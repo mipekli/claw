@@ -21,16 +21,17 @@ export class OpenAIProvider implements Provider {
       ? [{ role: "system" as const, content: systemPrompt }]
       : [];
 
-    const attempts = (this.config.retryCount ?? 1) + 1;
+    const attempts = (this.config.retryCount ?? 0) + 1;
     let lastError: unknown;
     for (let attempt = 0; attempt < attempts; attempt++) {
       try {
         const stream = await this.client.chat.completions.create({
           model: this.config.model,
           max_tokens: this.config.maxTokens ?? 4096,
-          timeout: this.config.timeoutMs ?? 120000,
           messages: [...systemMsg, ...messages.map((m) => ({ role: m.role, content: m.content }))],
           stream: true,
+        }, {
+          timeout: this.config.timeoutMs ?? 120000,
         });
 
         for await (const chunk of stream) {

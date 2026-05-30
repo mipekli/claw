@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAskArgs } from "../src/cli.js";
+import { parseAskArgs } from "../src/cli";
 
 describe("parseAskArgs", () => {
   it("parses inline question", () => {

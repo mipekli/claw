@@ -5,11 +5,21 @@ import { loadTelegramHistory, saveTelegramHistory } from "./history.js";
 import { updateConfig } from "./config.js";
 import { trackUsage } from "./metrics.js";
 
+const TELEGRAM_MAX_MESSAGE_LENGTH = 3900;
+
 function parseUserIds(raw: string): number[] {
   return raw
     .split(",")
     .map((v) => Number(v.trim()))
     .filter((v) => Number.isFinite(v) && v > 0);
+}
+
+function getCommandText(message: unknown): string {
+  if (typeof message === "object" && message !== null && "text" in message) {
+    const value = (message as { text?: unknown }).text;
+    return typeof value === "string" ? value : "";
+  }
+  return "";
 }
 
 export function startTelegramBot(config: Config, provider: Provider): void {
@@ -57,7 +67,7 @@ export function startTelegramBot(config: Config, provider: Provider): void {
     if (!isAdmin(ctx.from.id)) {
       return ctx.reply("⛔ Admin only.");
     }
-    const text = (ctx.message as any).text as string;
+    const text = getCommandText(ctx.message);
     const ids = parseUserIds(text.replace("/admin_allow", "").trim());
     const current = new Set(config.telegram?.allowedUserIds ?? []);
     ids.forEach((id) => current.add(id));
@@ -71,7 +81,7 @@ export function startTelegramBot(config: Config, provider: Provider): void {
     if (!isAdmin(ctx.from.id)) {
       return ctx.reply("⛔ Admin only.");
     }
-    const text = (ctx.message as any).text as string;
+    const text = getCommandText(ctx.message);
     const denyIds = new Set(parseUserIds(text.replace("/admin_deny", "").trim()));
     const allowedUserIds = (config.telegram?.allowedUserIds ?? []).filter((id) => !denyIds.has(id));
     updateConfig({ telegram: { ...(config.telegram ?? { token: "" }), allowedUserIds } });
@@ -115,16 +125,15 @@ export function startTelegramBot(config: Config, provider: Provider): void {
 
       await trackUsage(config);
       await ctx.telegram.deleteMessage(ctx.chat.id, loadingMsg.message_id);
-      const maxLen = 3900;
       if (!fullResponse.trim()) {
         await ctx.reply("⚠️ Empty response from provider.");
         return;
       }
-      if (fullResponse.length <= maxLen) {
+      if (fullResponse.length <= TELEGRAM_MAX_MESSAGE_LENGTH) {
         await ctx.reply(fullResponse);
       } else {
-        for (let i = 0; i < fullResponse.length; i += maxLen) {
-          await ctx.reply(fullResponse.slice(i, i + maxLen));
+        for (let i = 0; i < fullResponse.length; i += TELEGRAM_MAX_MESSAGE_LENGTH) {
+          await ctx.reply(fullResponse.slice(i, i + TELEGRAM_MAX_MESSAGE_LENGTH));
         }
       }
     } catch (err: any) {

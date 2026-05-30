@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateConfig } from "../src/validation.js";
+import { validateConfig } from "../src/validation";
 
 describe("validateConfig", () => {
   it("throws for missing api key", () => {
