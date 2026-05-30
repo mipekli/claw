@@ -21,18 +21,32 @@ export class OpenAIProvider implements Provider {
       ? [{ role: "system" as const, content: systemPrompt }]
       : [];
 
-    const stream = await this.client.chat.completions.create({
-      model: this.config.model,
-      max_tokens: this.config.maxTokens ?? 4096,
-      messages: [...systemMsg, ...messages.map((m) => ({ role: m.role, content: m.content }))],
-      stream: true,
-    });
+    const attempts = (this.config.retryCount ?? 1) + 1;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      try {
+        const stream = await this.client.chat.completions.create({
+          model: this.config.model,
+          max_tokens: this.config.maxTokens ?? 4096,
+          timeout: this.config.timeoutMs ?? 120000,
+          messages: [...systemMsg, ...messages.map((m) => ({ role: m.role, content: m.content }))],
+          stream: true,
+        });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        yield content;
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content;
+          if (content) {
+            yield content;
+          }
+        }
+        return;
+      } catch (error) {
+        lastError = error;
       }
     }
+    if (lastError instanceof Error) {
+      throw new Error(`OpenAI request failed: ${lastError.message}`);
+    }
+    throw new Error("OpenAI request failed.");
   }
 }
