@@ -98,7 +98,16 @@ async function main(): Promise<number> {
     }
     case "config": {
       const cfg = getConfig();
-      console.log(JSON.stringify(cfg, null, 2));
+      const sanitized = { ...cfg };
+      for (const key of SUPPORTED_PROVIDERS) {
+        if (sanitized[key]) {
+          sanitized[key] = { ...sanitized[key], apiKey: "***" };
+        }
+      }
+      if (sanitized.telegram?.token) {
+        sanitized.telegram = { ...sanitized.telegram, token: "***" };
+      }
+      console.log(JSON.stringify(sanitized, null, 2));
       return EXIT_CODES.SUCCESS;
     }
     case "ask": {
